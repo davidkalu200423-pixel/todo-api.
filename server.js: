@@ -1,0 +1,47 @@
+const express = require('express');
+const bodyParser = require('body-parser');
+const cors = require('cors');
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+app.use(bodyParser.json());
+app.use(cors());
+
+let todos = [];
+
+// GET all todos
+app.get('/api/v1/todos', (req, res) => {
+  res.status(200).json(todos);
+});
+
+// GET single todo
+app.get('/api/v1/todos/:id', (req, res) => {
+  const todo = todos.find(t => t.id === parseInt(req.params.id));
+  if (!todo) return res.status(404).json({ error: 'Todo not found' });
+  res.json(todo);
+});
+
+// POST create todo
+app.post('/api/v1/todos', (req, res) => {
+  const { title, completed = false } = req.body;
+  const newTodo = { id: todos.length + 1, title, completed };
+  todos.push(newTodo);
+  res.status(201).json(newTodo);
+});
+
+// PUT update todo
+app.put('/api/v1/todos/:id', (req, res) => {
+  const todo = todos.find(t => t.id === parseInt(req.params.id));
+  if (!todo) return res.status(404).json({ error: 'Todo not found' });
+  todo.title = req.body.title ?? todo.title;
+  todo.completed = req.body.completed ?? todo.completed;
+  res.json(todo);
+});
+
+// DELETE todo
+app.delete('/api/v1/todos/:id', (req, res) => {
+  todos = todos.filter(t => t.id !== parseInt(req.params.id));
+  res.status(204).send();
+});
+
+app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
